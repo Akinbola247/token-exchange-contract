@@ -126,7 +126,8 @@ function swapLINKforUsdc(uint link_amount) public {
     LINK.transferFrom(msg.sender, address(this), link_amount);
     uint linkPrice = getLINKUSDPrice();
     uint usdcPrice = getUSDCUSDPrice();
-    uint swappedAmount = (linkPrice * link_amount)/usdcPrice ;
+    uint converted = link_amount/1e18;
+    uint swappedAmount = (linkPrice * converted)/usdcPrice ;
     uint balance = USDC.balanceOf(address(this));
     require(balance >= swappedAmount, "not enough liquidity, check back");
     USDC.transferFrom(address(this), receiver, swappedAmount);
