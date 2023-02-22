@@ -52,7 +52,6 @@ constructor(){
 
 DAIusdpriceFeed = AggregatorV3Interface(0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9); //mainnet
 LINKusdpriceFeed = AggregatorV3Interface(0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c); //mainnet
-// ETHusdpriceFeed = AggregatorV3Interface(0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e);
 USDCusdpriceFeed = AggregatorV3Interface(0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6); //mainnet
 
 }
@@ -88,10 +87,10 @@ function getLINKUSDPrice() public view returns (uint) {
         ( , int price, , , ) = LINKusdpriceFeed.latestRoundData();
         return price.toUint256();
     }
-function getETHUSDPrice() public view returns (uint) {
-        ( , int price, , , ) = ETHusdpriceFeed.latestRoundData();
-        return price.toUint256();
-    }
+// function getETHUSDPrice() public view returns (uint) {
+//         ( , int price, , , ) = ETHusdpriceFeed.latestRoundData();
+//         return price.toUint256();
+//     }
 function getUSDCUSDPrice() public view returns (uint) {
         ( , int price, , , ) = DAIusdpriceFeed.latestRoundData();
         return price.toUint256();
@@ -103,22 +102,22 @@ function swapLINKforDai(uint link_amount) public {
     LINK.transferFrom(msg.sender, address(this), link_amount);
     uint linkPrice = getLINKUSDPrice();
     uint daiPrice = getDAIUSDPrice();
-    uint swappedAmount = (linkPrice/daiPrice) * link_amount;
+    uint swappedAmount = (linkPrice * link_amount)/daiPrice ;
     uint balance = DAI.balanceOf(address(this));
     require(balance >= swappedAmount, "not enough liquidity, check back");
     DAI.transferFrom(address(this), receiver, swappedAmount);
 
 }
 
-function swapDAIforLink(uint dai_amount) public {
-    // address receiver = msg.sender;
+function swapDAIforLink(uint dai_amount) external {
+    address receiver = msg.sender;
     DAI.transferFrom(msg.sender, address(this), dai_amount);
     uint linkPrice = getLINKUSDPrice();
     uint daiPrice = getDAIUSDPrice();
-    uint swappedAmount = (daiPrice/linkPrice) * dai_amount;
+    uint swappedAmount = (daiPrice * dai_amount)/linkPrice;
     uint balance = LINK.balanceOf(address(this));
     require(balance >= swappedAmount, "not enough liquidity, check back");
-    LINK.transferFrom(address(this), msg.sender, swappedAmount);
+    LINK.transferFrom(address(this), receiver, swappedAmount);
 }
 
 
@@ -127,7 +126,7 @@ function swapLINKforUsdc(uint link_amount) public {
     LINK.transferFrom(msg.sender, address(this), link_amount);
     uint linkPrice = getLINKUSDPrice();
     uint usdcPrice = getUSDCUSDPrice();
-    uint swappedAmount = (linkPrice/usdcPrice) * link_amount;
+    uint swappedAmount = (linkPrice * link_amount)/usdcPrice ;
     uint balance = USDC.balanceOf(address(this));
     require(balance >= swappedAmount, "not enough liquidity, check back");
     USDC.transferFrom(address(this), receiver, swappedAmount);

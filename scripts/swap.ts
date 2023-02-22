@@ -7,6 +7,10 @@ async function main() {
 
     const LINK = "0x514910771AF9Ca656af840dff83E8264EcF986CA";
     const LINKHolder = "0x56178a0d5F301bAf6CF3e1Cd53d9863437345Bf9";
+
+    const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+    const USDCHolder = "0x56178a0d5F301bAf6CF3e1Cd53d9863437345Bf9";
+
   const Swap = await ethers.getContractFactory("swapContract");
   const swap = await Swap.deploy();
   await swap.deployed();
@@ -26,6 +30,15 @@ const helpers = require("@nomicfoundation/hardhat-network-helpers");
   const balance2beforeSwap = await LINKContract.balanceOf(LINKHolder);
   console.log(`balance of link owner before swap ${balance2beforeSwap}`);
 
+//USDC impersonation
+await helpers.impersonateAccount(USDCHolder);
+  const USDCimpersonatedSigner = await ethers.getSigner(USDCHolder);
+  const USDCContract = await ethers.getContractAt("IToken", USDC);
+  const USDCbalancebeforeSwap = await USDCContract.balanceOf(USDCHolder);
+  console.log(`balance of link owner before swap ${USDCbalancebeforeSwap}`);
+
+
+
 //   Add DAI liquidity
     const amount = ethers.utils.parseEther("5");
     const approval = await DAIContract.connect(DAIimpersonatedSigner).approve(swap.address, amount);
@@ -36,7 +49,7 @@ const helpers = require("@nomicfoundation/hardhat-network-helpers");
     console.log(`contract Dai balance after liquidity Add ${contractDAIbalance}`);
 
 // Add LINK liquidity
-const amount1 = ethers.utils.parseEther("2");
+const amount1 = ethers.utils.parseEther("50");
     const approval1 = await LINKContract.connect(LINKimpersonatedSigner).approve(swap.address, amount1);
     await swap.connect(LINKimpersonatedSigner).AddLINKLiquidity(amount1);
     const linkOwner = await LINKContract.balanceOf(LINKHolder);
@@ -44,8 +57,18 @@ const amount1 = ethers.utils.parseEther("2");
     console.log(`link Owner balance after adding liquidity ${linkOwner}`)
     console.log(`contract link balance after liquidity Add ${contractLINKbalance}`);
 
+
+//Add USDC liquidity
+const amount3 = ethers.utils.parseEther("50");
+    const approval2 = await LINKContract.connect(LINKimpersonatedSigner).approve(swap.address, amount3);
+    await swap.connect(USDCimpersonatedSigner).AddUSDCLiquidity(amount3);
+    const USDCOwner = await USDCContract.balanceOf(USDCHolder);
+    const contractUSDCbalance = await USDCContract.balanceOf(swap.address);
+    console.log(`link Owner balance after adding liquidity ${USDCOwner}`)
+    console.log(`contract usdc balance after liquidity Add ${contractUSDCbalance}`);
+
 // swap LINK for DAI 
-const amountToSwap = ethers.utils.parseEther("0.0001");
+const amountToSwap = ethers.utils.parseEther("0.01");
 const approvall = await LINKContract.connect(LINKimpersonatedSigner).approve(swap.address, amountToSwap);
 await swap.connect(LINKimpersonatedSigner).swapLINKforDai(amountToSwap);
 const DaiSwapbalance = await DAIContract.balanceOf(LINKHolder);
@@ -55,17 +78,30 @@ const contractRemaindLINK = await LINKContract.balanceOf(swap.address);
 console.log(`contract Dai balance after last swap ${contractRemaindDAI}`);
 console.log(`contract LINK balance after last swap ${contractRemaindLINK}`);
 
+//swap LINK for USDC
+const amountToSwapp = ethers.utils.parseEther("5");
+const approves = await LINKContract.connect(LINKimpersonatedSigner).approve(swap.address, amountToSwapp);
+await swap.connect(LINKimpersonatedSigner).swapLINKforUsdc(1000);
+const UsdcSwapbalance = await USDCContract.balanceOf(LINKHolder);
+console.log(`new usdc owner balance after swap is ${UsdcSwapbalance}`)
+const contractRemaindUSDC = await DAIContract.balanceOf(swap.address);
+const contractRemaindLINKK = await LINKContract.balanceOf(swap.address);
+console.log(`contract USDC balance after last swap ${contractRemaindLINKK}`);
+console.log(`contract LINK balance after last swap ${contractRemaindLINKK}`);
+
 
 //swap DAI for LINK 
-const amountToSwap2 = ethers.utils.parseEther("1");
-const approvall4 = await DAIContract.connect(DAIimpersonatedSigner).approve(swap.address, amountToSwap2);
-await swap.connect(DAIimpersonatedSigner).swapDAIforLink(amountToSwap2);
-const linkSwapbalance = await LINKContract.balanceOf(DAIHolder);
-console.log(`new link owner balance after swap is ${linkSwapbalance}`)
-const contractRemaindDAII = await DAIContract.balanceOf(swap.address);
-const contractRemaindLINKL = await LINKContract.balanceOf(swap.address);
-console.log(`contract Dai balance after 2nd swap ${contractRemaindDAII}`);
-console.log(`contract LINK balance after 2nd swap ${contractRemaindLINKL}`);
+// const amountToSwap2 = 2000;
+// const approvall4 = await DAIContract.connect(DAIimpersonatedSigner).approve(swap.address, amountToSwap2);
+// console.log("working...");
+// await swap.connect(DAIimpersonatedSigner).swapDAIforLink(amountToSwap2);
+// console.log("still working");
+// const linkSwapbalance = await LINKContract.balanceOf(DAIHolder);
+// console.log(`new link owner balance after swap is ${linkSwapbalance}`)
+// const contractRemaindDAII = await DAIContract.balanceOf(swap.address);
+// const contractRemaindLINKL = await LINKContract.balanceOf(swap.address);
+// console.log(`contract Dai balance after 2nd swap ${contractRemaindDAII}`);
+// console.log(`contract LINK balance after 2nd swap ${contractRemaindLINKL}`);
 
 }
 
